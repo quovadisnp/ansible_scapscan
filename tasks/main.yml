@@ -1,0 +1,93 @@
+---
+
+- name: Validate output paths
+  stat:
+    path: "{{ item | dirname }}"
+  register: output_path_check
+  loop:
+    - "{{ scap_xml_report }}"
+    - "{{ scap_html_report }}"
+
+- name: Fail on missing output paths
+  debug:
+    msg: "Specified output directory does not exist - {{ item.stat.path }}"
+  failed_when: not item.stat.exists
+  loop: "{{ output_path_check.results }}"
+
+- name: Lookup SCAP Profile
+  set_fact:
+    scap_profile: "{{ item.id }}"
+  loop: "{{ scap_profiles[ansible_os_family][ansible_distribution_major_version | int] }}"
+  when: (item.title == scap_profile_title)
+
+- name: Fail on missing SCAP profile
+  debug:
+    msg: "SCAP profile '{{ scap_profile_title }}' not found"
+  failed_when: true
+  when: scap_profile is not defined
+
+- name: Install required SCAP packages
+  package:
+    name: "{{ scap_required_pkgs[ansible_os_family] }}"
+    state: latest
+
+- name: Change RHEL profiles to CENTOS profiles
+  shell: "sudo sed -i -e 's|idref=\"cpe:/o:redhat:enterprise_linux|idref=\"cpe:/o:centos:centos|g' -e 's|ref_id=\"cpe:/o:redhat:enterprise_linux|ref_id=\"cpe:/o:centos:centos|g' {{ scap_content_path[ansible_os_family] }}/ssg-rhel*.xml"
+  when: (ansible_distribution == "CentOS")
+
+- name: debug
+  debug:
+    msg: "{{ oscap[ansible_os_family] }} xccdf eval --report {{ scap_html_report }} --profile {{ scap_profile }} --results {{ scap_xml_report }} {{ scap_content_file[ansible_os_family] }}"
+
+- name: Run scan
+  shell: "{{ oscap[ansible_os_family] }} xccdf eval --report {{ scap_html_report }} --profile {{ scap_profile }} --results {{ scap_xml_report }} {{ scap_content_file[ansible_os_family] }}"
+  register: scan_run
+  ignore_errors: true
+  failed_when:
+    - ('stdout' not in scan_run) 
+    - ('Title' not in scan_run.stdout)
+    - ('Indent' not in scan_run.stdout)
+    - ('Result' not in scan_run.stdout)
+
+- name: Debug scan stdout
+  debug:
+    var: scan_run
+  when: scap_display_scan_run
+
+- name: Stat output html/xml
+  stat:
+    path: "{{ item }}"
+  loop:
+    - "{{ scap_xml_report }}"
+    - "{{ scap_html_report }}"
+  register: output_check
+
+- name: Validate report files
+  debug:
+    msg: "Failed to generate output files, scan failed"
+  loop: "{{ output_check.results }}"
+  when: not item.stat.exists
+
+- name: Retrieve score from report
+  shell: "cat {{ scap_xml_report }} | grep score | cut -f2 -d'>' | cut -f1 -d'<'"
+  register: score_report_ret
+
+- name: Set score
+  set_fact:
+    scap_score: "{{ score_report_ret.stdout }}"
+
+- name: Evaluate score - Set True
+  set_fact:
+    scap_score_pass: true
+  when: (scap_score|float) >= scap_score_threshold
+
+- name: Evaluate score - Set False
+  set_fact:
+    scap_score_pass: false
+  when: (scap_score|float) < scap_score_threshold
+
+- name: Display scap score
+  debug:
+    var: scap_score
+  when: scap_display_score
+...

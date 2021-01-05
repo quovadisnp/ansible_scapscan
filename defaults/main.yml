@@ -1,0 +1,68 @@
+scap_html_report: ./scap_scan_results-{{ ansible_date_time.year }}{{ ansible_date_time.month }}{{ ansible_date_time.day }}_{{ ansible_date_time.hour}}{{ansible_date_time.minute }}{{ ansible_date_time.second }}.html
+
+scap_xml_report: ./scap_scan_results-{{ ansible_date_time.year }}{{ ansible_date_time.month }}{{ ansible_date_time.day }}_{{ ansible_date_time.hour}}{{ansible_date_time.minute }}{{ ansible_date_time.second }}.xml
+
+
+scap_distro_scapname:
+  RedHat: rhel
+
+scap_score_threshold: 90.00
+
+scap_display_score: true
+
+scap_display_scan_run: false
+
+oscap:
+  RedHat: /usr/bin/oscap
+
+scap_required_pkgs:
+  RedHat:
+    - openscap-scanner
+    - scap-security-guide
+    - unzip
+
+scap_content_path:
+  RedHat: "/usr/share/xml/scap/ssg/content"
+
+scap_content_file:
+  RedHat: "{{ scap_content_path['RedHat'] }}/ssg-{{ scap_distro_scapname['RedHat'] }}{{ ansible_distribution_major_version }}-ds.xml"
+
+scap_profiles:
+  RedHat:
+    7:
+      - title: DRAFT - ANSSI DAT-NT28 (high)
+        id: xccdf_org.ssgproject.content_profile_anssi_nt28_high
+      - title: DRAFT - ANSSI DAT-NT28 (intermediary)
+        id: xccdf_org.ssgproject.content_profile_anssi_nt28_intermediary
+      - title: DRAFT - ANSSI DAT-NT28 (minimal)
+        id: xccdf_org.ssgproject.content_profile_anssi_nt28_minimal
+      - title: VPP - Protection Profile for Virtualization v. 1.0 for Red Hat Enterprise Linux Hypervisor (RHELH)
+        id: xccdf_org.ssgproject.content_profile_rhelh-vpp
+      - title: Red Hat Corporate Profile for Certified Cloud Providers (RH CCP)
+        id: xccdf_org.ssgproject.content_profile_rht-ccp
+      - title: Standard System Security Profile for Red Hat Enterprise Linux 7
+        id: xccdf_org.ssgproject.content_profile_standard
+      - title: C2S for Red Hat Enterprise Linux 7
+        id: xccdf_org.ssgproject.content_profile_C2S
+      - title: CIS Red Hat Enterprise Linux 7 Benchmark
+        id: xccdf_org.ssgproject.content_profile_cis
+      - title: Criminal Justice Information Services (CJIS) Security Policy
+        id: xccdf_org.ssgproject.content_profile_cjis
+      - title: Unclassified Information in Non-federal Information Systems and Organizations (NIST 800-171)
+        id: xccdf_org.ssgproject.content_profile_cui
+      - title: OSPP - Protection Profile for General Purpose Operating Systems v4.2.1
+        id: xccdf_org.ssgproject.content_profile_ospp
+      - title: Health Insurance Portability and Accountability Act (HIPAA)
+        id: xccdf_org.ssgproject.content_profile_hipaa
+      - title: Australian Cyber Security Centre (ACSC) Essential Eight
+        id: xccdf_org.ssgproject.content_profile_e8
+      - title: "[DRAFT] DISA STIG for Red Hat Enterprise Linux Virtualization Host (RHELH)"
+        id: xccdf_org.ssgproject.content_profile_rhelh-stig
+      - title: DRAFT - ANSSI DAT-NT28 (enhanced)
+        id: xccdf_org.ssgproject.content_profile_anssi_nt28_enhanced
+      - title: PCI-DSS v3.2.1 Control Baseline for Red Hat Enterprise Linux 7
+        id: xccdf_org.ssgproject.content_profile_pci-dss
+      - title: NIST National Checklist Program Security Guide
+        id: xccdf_org.ssgproject.content_profile_ncp
+      - title: DISA STIG for Red Hat Enterprise Linux 7
+        id: xccdf_org.ssgproject.content_profile_stig
