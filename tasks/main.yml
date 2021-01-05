@@ -79,12 +79,12 @@
 - name: Evaluate score - Set True
   set_fact:
     scap_score_pass: true
-  when: (scap_score|float) >= scap_score_threshold
+  when: (scap_score|float) >= scap_score_threshold|float
 
 - name: Evaluate score - Set False
   set_fact:
     scap_score_pass: false
-  when: (scap_score|float) < scap_score_threshold
+  when: (scap_score|float) < scap_score_threshold|float
 
 - name: Display scap score
   debug:
